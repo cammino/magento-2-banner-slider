@@ -39,6 +39,7 @@ use Mageplaza\BannerSlider\Helper\Data;
 use Mageplaza\BannerSlider\Helper\Image as HelperImage;
 use Mageplaza\BannerSlider\Model\Config\Source\Template;
 use Mageplaza\BannerSlider\Model\Config\Source\Type;
+use Magento\Framework\Stdlib\DateTime;
 
 /**
  * Class Banner
@@ -177,6 +178,7 @@ class Banner extends Generic implements TabInterface
         $form = $this->_formFactory->create();
         $form->setHtmlIdPrefix('banner_');
         $form->setFieldNameSuffix('banner');
+        $dateFormat = $this->_localeDate->getDateFormat(\IntlDateFormatter::SHORT);
         $fieldset = $form->addFieldset('base_fieldset', [
             'legend' => __('Banner Information'),
             'class' => 'fieldset-wide'
@@ -238,6 +240,24 @@ class Banner extends Generic implements TabInterface
             'values' => $this->statusOptions->toOptionArray(),
             'note' => __('Automatically open new tab after clicking on the banner')
 
+        ]);
+
+        $fromDate = $fieldset->addField('from_date', 'date', [
+            'name' => 'from_date',
+            'label' => __('Display from'),
+            'title' => __('Display from'),
+            'date_format' => $dateFormat,
+            'input_format' => DateTime::DATE_INTERNAL_FORMAT,
+            'timezone' => false
+        ]);
+
+        $toDate = $fieldset->addField('to_date', 'date', [
+            'name' => 'to_date',
+            'label' => __('Display to'),
+            'title' => __('Display to'),
+            'date_format' => $dateFormat,
+            'input_format' => DateTime::DATE_INTERNAL_FORMAT,
+            'timezone' => false
         ]);
 
         if (!$banner->getId()) {

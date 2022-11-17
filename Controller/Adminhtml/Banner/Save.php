@@ -21,6 +21,7 @@
 
 namespace Mageplaza\BannerSlider\Controller\Adminhtml\Banner;
 
+use DateTime;
 use Exception;
 use Magento\Backend\App\Action\Context;
 use Magento\Backend\Helper\Js;
@@ -28,6 +29,7 @@ use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Registry;
+use Magento\Framework\Stdlib\DateTime\Filter\Date;
 use Mageplaza\BannerSlider\Controller\Adminhtml\Banner;
 use Mageplaza\BannerSlider\Helper\Image;
 use Mageplaza\BannerSlider\Model\BannerFactory;
@@ -97,6 +99,25 @@ class Save extends Banner
                 $banner->setTagsData(
                     $this->jsHelper->decodeGridSerializedInput($this->getRequest()->getPost('sliders', false))
                 );
+            }
+
+            $fromDate = $toDate = null;
+            if (isset($data['from_date']) && isset($data['to_date'])) {
+                $fromDate = $data['from_date'];
+                $toDate = $data['to_date'];
+            }
+            if ($fromDate && $toDate) {
+                $fromDate = new DateTime($fromDate);
+                $toDate = new DateTime($toDate);
+
+                if ($fromDate > $toDate) {
+                    $this->messageManager->addErrorMessage(__('End Date must follow Start Date.'));
+                    $this->_session->setPageData($data);
+                    $this->dataPersistor->set('mpbannerslider_banner', $data);
+                    $this->_redirect('*/*/edit', ['banner_id' => $slider->getId()]);
+
+                    return;
+                }
             }
 
             $banner->addData($data);
