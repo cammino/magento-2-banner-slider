@@ -39,6 +39,7 @@ use Mageplaza\BannerSlider\Helper\Data;
 use Mageplaza\BannerSlider\Helper\Image as HelperImage;
 use Mageplaza\BannerSlider\Model\Config\Source\Template;
 use Mageplaza\BannerSlider\Model\Config\Source\Type;
+use Mageplaza\BannerSlider\Model\Config\Source\Device;
 use Magento\Framework\Stdlib\DateTime;
 
 /**
@@ -89,6 +90,11 @@ class Banner extends Generic implements TabInterface
     protected $_wysiwygConfig;
 
     /**
+     * @var Device
+     */
+    protected $_deviceOptions;
+
+    /**
      * Banner constructor.
      *
      * @param Type $typeOptions
@@ -114,6 +120,7 @@ class Banner extends Generic implements TabInterface
         FieldFactory $fieldFactory,
         DataObject $objectConverter,
         WysiwygConfig $wysiwygConfig,
+        Device $device,
         array $data = []
     ) {
         $this->typeOptions = $typeOptions;
@@ -123,6 +130,7 @@ class Banner extends Generic implements TabInterface
         $this->_fieldFactory = $fieldFactory;
         $this->_objectConverter = $objectConverter;
         $this->_wysiwygConfig = $wysiwygConfig;
+        $this->_deviceOptions = $device;
 
         parent::__construct($context, $registry, $formFactory, $data);
     }
@@ -239,6 +247,15 @@ class Banner extends Generic implements TabInterface
             'title' => __('Open new tab after click'),
             'values' => $this->statusOptions->toOptionArray(),
             'note' => __('Automatically open new tab after clicking on the banner')
+
+        ]);
+
+        $device = $fieldset->addField('device', 'select', [
+            'name' => 'device',
+            'label' => __('Device'),
+            'title' => __('Device'),
+            'values' => $this->_deviceOptions->toOptionArray(),
+            'note' => __('Defines if banner is loaded on mobile or desktop devices')
 
         ]);
 
