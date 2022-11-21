@@ -10,7 +10,8 @@ class Device implements ArrayInterface
  {
   return [
     ['value' => 'desktop', 'label' => __('Desktop')],
-    ['value' => 'mobile', 'label' => __('Mobile')]
+    ['value' => 'mobile', 'label' => __('Mobile')],
+    ['value' => 'both', 'label' => __('Ambos')]
   ];
  }
 }
