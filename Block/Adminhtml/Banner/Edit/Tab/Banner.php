@@ -250,6 +250,22 @@ class Banner extends Generic implements TabInterface
 
         ]);
 
+        $width = $fieldset->addField('width', 'text', [
+            'name' => 'width',
+            'label' => __('Width'),
+            'title' => __('Width'),
+            'note' => __('Defines width of banner')
+
+        ]);
+
+        $height = $fieldset->addField('height', 'text', [
+            'name' => 'height',
+            'label' => __('Height'),
+            'title' => __('Height'),
+            'note' => __('Defines height of banner')
+
+        ]);
+
         $device = $fieldset->addField('device', 'select', [
             'name' => 'device',
             'label' => __('Device'),

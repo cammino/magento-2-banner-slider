@@ -69,6 +69,29 @@ class UpgradeSchema implements UpgradeSchemaInterface
             );
         }
 
+        if (version_compare($context->getVersion(), '2.3.0') < 0) {
+            $setup->getConnection()->addColumn(
+                $installer->getTable('mageplaza_bannerslider_banner'),
+                'width',
+                [
+                    'type' => Table::TYPE_TEXT,
+                    'nullable' => true,
+                    'comment' => 'Width',
+                    'after' => 'newtab'
+                ]
+            );
+            $setup->getConnection()->addColumn(
+                $installer->getTable('mageplaza_bannerslider_banner'),
+                'height',
+                [
+                    'type' => Table::TYPE_TEXT,
+                    'nullable' => true,
+                    'comment' => 'Height',
+                    'after' => 'newtab'
+                ]
+            );
+        }
+
         $installer->endSetup();
     }
 }
