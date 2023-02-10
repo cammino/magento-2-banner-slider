@@ -56,6 +56,9 @@ class Save extends Banner
      */
     protected $imageHelper;
 
+    
+    protected $_dateFilter;
+
     /**
      * Save constructor.
      *
@@ -85,6 +88,9 @@ class Save extends Banner
     {
         $resultRedirect = $this->resultRedirectFactory->create();
 
+        $objectManager  = \Magento\Framework\App\ObjectManager::getInstance();
+        $objDate = $objectManager->create('Magento\Framework\Stdlib\DateTime\Filter\Date');
+
         if ($this->getRequest()->getPost('banner')) {
             $data = $this->getRequest()->getPost('banner');
             $banner = $this->initBanner();
@@ -111,6 +117,21 @@ class Save extends Banner
                 $toDate = new DateTime($toDate);
 
                 if ($fromDate > $toDate) {
+
+                    // make sure the date is converted to internal format
+                    $fromFilter = new \Zend_Filter_Input(
+                        ['quota_expiry' => $objDate],
+                        [],
+                        $data['from_date']
+                    );
+                    $toFilter = new \Zend_Filter_Input(
+                        ['quota_expiry' => $objDate],
+                        [],
+                        $data['from_date']
+                    );
+                    $data['from_date'] = $fromFilter->getUnescaped();
+                    $data['to_date'] = $toFilter->getUnescaped();
+
                     $this->messageManager->addErrorMessage(__('End Date must follow Start Date.'));
                     $this->_session->setPageData($data);
                     $this->dataPersistor->set('mpbannerslider_banner', $data);
