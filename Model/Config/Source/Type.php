@@ -32,6 +32,8 @@ class Type implements ArrayInterface
     const IMAGE = '0';
     const CONTENT = '1';
 
+    const VIDEO = '2';
+
     /**
      * to option array
      *
@@ -47,6 +49,10 @@ class Type implements ArrayInterface
             [
                 'value' => self::CONTENT,
                 'label' => __('Advanced')
+            ],
+            [
+                'value' => self::VIDEO,
+                'label' => __('Video')
             ]
         ];
 

@@ -32,39 +32,4 @@ class Image extends Media
     const TEMPLATE_MEDIA_PATH = 'mageplaza/bannerslider';
     const TEMPLATE_MEDIA_TYPE_BANNER = 'banner/image';
     const TEMPLATE_MEDIA_TYPE_SLIDER = 'slider/image';
-
-    public function uploadImage(&$data, $fileName = 'image', $type = '', $oldImage = null)
-    {
-        if (isset($data[$fileName]['delete']) && $data[$fileName]['delete']) {
-            if ($oldImage) {
-                try {
-                    $this->removeImage($oldImage, $type);
-                } catch (Exception $e) {
-                    $this->_logger->critical($e->getMessage());
-                }
-            }
-            $data[$fileName] = '';
-        } else {
-            try {
-                $uploader = $this->uploaderFactory->create(['fileId' => $fileName]);
-                $uploader->setAllowedExtensions(['jpg', 'jpeg', 'gif', 'png', 'svg', 'mp4']);
-                $uploader->setAllowRenameFiles(true);
-                $uploader->setFilesDispersion(true);
-                $uploader->setAllowCreateFolders(true);
-                $path = $this->getBaseMediaPath($type);
-                $image = $uploader->save(
-                    $this->mediaDirectory->getAbsolutePath($path)
-                );
-                if ($oldImage) {
-                    $this->removeImage($oldImage, $type);
-                }
-                $data[$fileName] = $this->_prepareFile($image['file']);
-            } catch (Exception $e) {
-                $data[$fileName] = isset($data[$fileName]['value']) ? $data[$fileName]['value'] : '';
-            }
-        }
-
-        return $this;
-    }
-
 }

@@ -32,6 +32,7 @@ use Magento\Framework\Registry;
 use Magento\Framework\Stdlib\DateTime\Filter\Date;
 use Mageplaza\BannerSlider\Controller\Adminhtml\Banner;
 use Mageplaza\BannerSlider\Helper\Image;
+use Mageplaza\BannerSlider\Helper\Video;
 use Mageplaza\BannerSlider\Model\BannerFactory;
 use Mageplaza\BannerSlider\Model\Config\Source\Type;
 use RuntimeException;
@@ -55,6 +56,7 @@ class Save extends Banner
      * @var Image
      */
     protected $imageHelper;
+    protected $videoHelper;
 
     
     protected $_dateFilter;
@@ -70,6 +72,7 @@ class Save extends Banner
      */
     public function __construct(
         Image $imageHelper,
+        Video $videoHelper,
         BannerFactory $bannerFactory,
         Registry $registry,
         Js $jsHelper,
@@ -96,7 +99,9 @@ class Save extends Banner
             $banner = $this->initBanner();
             if ($data['type'] === Type::IMAGE) {
                 $this->imageHelper->uploadImage($data, 'image', Image::TEMPLATE_MEDIA_TYPE_BANNER, $banner->getImage());
-            } else {
+            } else if ($data['type'] === Type::VIDEO) {
+                $this->imageHelper->uploadImage($data, 'image', Video::TEMPLATE_MEDIA_TYPE_BANNER, $banner->getImage());
+            } {
                 $data['image'] = isset($data['image']['value']) ? $data['image']['value'] : '';
             }
             $data['sliders_ids'] = (isset($data['sliders_ids']) && $data['sliders_ids'])
