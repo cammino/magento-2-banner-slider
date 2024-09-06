@@ -20,54 +20,113 @@
  */
 
 use Mageplaza\BannerSlider\Model\Config\Source\Type;
+$now = new \DateTime();
 
-$banners = $block->getBannerCollection();
+$banners = $block->getBannerCollection()
+    ->addFieldToFilter(['from_date','from_date'], [['lteq' => $now->format('Y-m-d')],['null'=>true]])
+    ->addFieldToFilter(['to_date','to_date'], [['gteq' => $now->format('Y-m-d')],['null'=>true]]);
+
 $check   = is_array($banners) ? !empty($banners) : $banners->getSize();
 if ($check): ?>
     <?php
     $sliderId      = $block->getSliderId() . uniqid('-', false);
     $sliderOptions = $block->getBannerOptions(); ?>
-    <div class="carousel-container mp-banner-slider">
+    <div class="carousel-container mp-banner-slider <?php echo $block->getHtmlClass(); ?>">
         <div id="banner-slider-carousel">
             <?php $iterator = 1; ?>
             <div id="bannerslider-list-items-<?= /* @noEscape */ $sliderId ?>"
                  class="owl-carousel owl-theme">
                 <?php foreach ($banners as $banner): ?>
                     <?php
-                    $bnType  = $banner->getType();
-                    $bnTitle = $banner->getTitle();
-                    $bnUrl   = $banner->getUrlBanner();
-                    $bnImg   = $banner->getImageUrl();
+                        $bnType   = $banner->getType();
+                        $bnTitle  = $banner->getTitle();
+                        $bnUrl    = $banner->getUrlBanner();
+                        $bnImg    = $banner->getImageUrl();
+                        $bnId     = $banner->getId();
+                        $bnWidth  = $banner->getWidth();
+                        $bnHeight = $banner->getHeight();
                     ?>
                     <?php if (($bnType === Type::CONTENT && empty($banner->getContent())) || ($bnType === Type::IMAGE && empty($banner->getImage()))): continue; ?>
                     <?php endif; ?>
                     <?= ($iterator++ === 1) ? '<div class="banner-item banner-slider">' : '</div><div class="banner-item banner-slider">' ?>
+                    <?php
+            				$preview_file = $block->escapeUrl($bnImg);
+            				$preview_file_ext = pathinfo($preview_file, PATHINFO_EXTENSION);
+                            var_dump($bnImg);
+                            var_dump($preview_file_ext);
+                        ?>
                     <?php if ($bnType === Type::CONTENT): ?>
                         <div class="item-content">
                             <?= /* @noEscape */ $block->getPageFilter($banner->getContent()) ?>
                         </div>
+                    <?php elseif(($preview_file_ext == "mp4" || $preview_file_ext == "webm" || $preview_file_ext == "ogg")): ?>
+   						<span class="video-home-slick">
+   							<video width="100%" height="100%" autoplay>
+   								<source src="<?php echo $block->escapeUrl($bnImg); ?>" type="video/<?php echo $preview_file_ext ?>"></video>
+   						</span>
                     <?php else: #image type?>
                         <div class="item-image">
                             <?php if (!empty($bnUrl)): ?>
                                 <a class="owl-image"
                                    href="<?= $block->escapeUrl($bnUrl) ?>" <?= /* @noEscape */ ($banner->getNewtab() === '1') ? 'target="_blank"' : '' ?>>
                                     <?php if (!empty($bnTitle)): ?>
-                                        <div class="banner-title"><?= $block->escapeHtml($bnTitle) ?></div>
+                                        <!-- <div class="banner-title"><?= $block->escapeHtml($bnTitle) ?></div> -->
                                     <?php endif; ?>
                                     <?php if ($block->isLazyLoad()): ?>
-                                        <img class="img-responsive owl-lazy" data-src-retina="<?= $block->escapeUrl($bnImg) ?>" data-src="<?= $block->escapeUrl($bnImg) ?>" alt="<?= $block->escapeHtml($bnTitle) ?>">
+                                        <img width="<?php echo $bnWidth; ?>" height="<?php echo $bnHeight; ?>" class="owl-real-image img-responsive owl-lazy" id="banner-<?php echo $bnId; ?>" data-src-retina="<?= $block->escapeUrl($bnImg) ?>" data-src="<?= $block->escapeUrl($bnImg) ?>" alt="<?= $block->escapeHtml($bnTitle) ?>">
                                     <?php else: ?>
-                                        <img class="img-responsive" src="<?= $block->escapeUrl($bnImg) ?>" alt="<?= $block->escapeHtml($bnTitle) ?>">
+                                        <img width="<?php echo $bnWidth; ?>" height="<?php echo $bnHeight; ?>" class="owl-real-image img-responsive" id="banner-<?php echo $bnId; ?>" src="" alt="<?= $block->escapeHtml($bnTitle) ?>" data-src="<?= $block->escapeUrl($bnImg) ?>">
                                     <?php endif; ?>
                                 </a>
                             <?php else: ?>
                                 <?php if ($block->isLazyLoad()): ?>
-                                    <img class="owl-image img-responsive owl-lazy" data-src-retina="<?= $block->escapeUrl($bnImg) ?>" data-src="<?= $block->escapeUrl($bnImg) ?>"
+                                    <img width="<?php echo $bnWidth; ?>" height="<?php echo $bnHeight; ?>" class="owl-real-image owl-image img-responsive owl-lazy" id="banner-<?php echo $bnId; ?>" data-src-retina="<?= $block->escapeUrl($bnImg) ?>" data-src="<?= $block->escapeUrl($bnImg) ?>"
                                      title="<?= $block->escapeHtml($bnTitle) ?>" alt="<?= $block->escapeHtml($bnTitle) ?>">
                                 <?php else: ?>
-                                    <img class="owl-image img-responsive" src="<?= $block->escapeUrl($bnImg) ?>"
-                                     title="<?= $block->escapeHtml($bnTitle) ?>" alt="<?= $block->escapeHtml($bnTitle) ?>">
+                                    <img width="<?php echo $bnWidth; ?>" height="<?php echo $bnHeight; ?>" class="owl-real-image owl-image img-responsive" src="" data-src="<?= $block->escapeUrl($bnImg) ?>"
+                                     title="<?= $block->escapeHtml($bnTitle) ?>" id="banner-<?php echo $bnId; ?>" alt="<?= $block->escapeHtml($bnTitle) ?>">
                                 <?php endif; ?>
+                            <?php endif; ?>
+                            <script>
+                                const getDeviceType = () => {
+                                  const ua = navigator.userAgent;
+                                  if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
+                                    return "tablet";
+                                  }
+                                  if (
+                                    /Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(
+                                      ua
+                                    )
+                                  ) {
+                                    return "mobile";
+                                  }
+                                  return "desktop";
+                                };
+                            </script>
+                            <?php if($banner->getDevice() == 'desktop'): ?>
+                                <script>
+                                    require(['jquery'], function($){
+                                        if ((getDeviceType() == 'desktop') || (window.location.href.indexOf('/cms/') > -1)) {
+                                            $('#banner-<?php echo $bnId; ?>').attr('src', '<?php echo $bnImg; ?>');
+                                        }
+                                    });
+                                </script>
+                            <?php endif; ?>
+                            <?php if($banner->getDevice() == 'mobile'): ?>                            
+                                <script>
+                                    require(['jquery'], function($){
+                                        if ((getDeviceType() == 'mobile') || (window.location.href.indexOf('/cms/') > -1)) {
+                                            $('#banner-<?php echo $bnId; ?>').attr('src', '<?php echo $bnImg; ?>');
+                                        }
+                                    });
+                                </script>
+                            <?php endif; ?>
+                            <?php if($banner->getDevice() == 'both'): ?>
+                                <script>
+                                    require(['jquery'], function($){
+                                        $('#banner-<?php echo $bnId; ?>').attr('src', '<?php echo $bnImg; ?>');
+                                    });
+                                </script>
                             <?php endif; ?>
                         </div>
                     <?php endif; ?>
@@ -79,8 +138,14 @@ if ($check): ?>
     </div>
     <script>
         require(['jquery', 'mageplaza/core/owl.carousel'], function ($) {
-            $('#bannerslider-list-items-<?= /* @noEscape */ $sliderId ?>').owlCarousel(<?= /* @noEscape */ $sliderOptions ?>);
-            if(/Android|webOS|iPhone|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+
+                <?php if ($block->getCarousel() === 'true'): ?>
+                    if (window.location.href.indexOf('/cms/') < 0) {
+                            $('#bannerslider-list-items-<?= /* @noEscape */ $sliderId ?>').owlCarousel(<?= /* @noEscape */ $sliderOptions ?>);
+                    }
+                <?php endif; ?>
+
+                if(/Android|webOS|iPhone|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
                 var widthMb = parseFloat($('.page-wrapper').width()) - 30;
                 $('.mp-banner-sidebar').attr('style','max-width: '+widthMb+'px');
             }

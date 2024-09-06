@@ -30,8 +30,8 @@ use Mageplaza\Core\Helper\Media;
 class Video extends Media
 {
     const TEMPLATE_MEDIA_PATH = 'mageplaza/bannerslider';
-    const TEMPLATE_MEDIA_TYPE_BANNER = 'banner/video';
-    const TEMPLATE_MEDIA_TYPE_SLIDER = 'slider/video';
+    const TEMPLATE_MEDIA_TYPE_BANNER = 'banner/image';
+    const TEMPLATE_MEDIA_TYPE_SLIDER = 'slider/image';
 
     public function uploadImage(&$data, $fileName = 'image', $type = '', $oldImage = null)
     {
