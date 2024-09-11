@@ -21,18 +21,79 @@
 
 namespace Mageplaza\BannerSlider\Helper;
 
-use Mageplaza\Core\Helper\Media;
+use Exception;
+use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Exception\FileSystemException;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Filesystem;
+use Magento\Framework\Filesystem\Directory\WriteInterface;
+use Magento\Framework\Image\AdapterFactory;
+use Magento\Framework\ObjectManagerInterface;
+use Magento\Framework\UrlInterface;
+use Magento\MediaStorage\Model\File\UploaderFactory;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
- * Class Image
- * @package Mageplaza\Blog\Helper
+ * Class Media
+ * @package Mageplaza\Core\Helper
  */
-class Image extends Media
+class Image extends AbstractData
 {
     const TEMPLATE_MEDIA_PATH = 'mageplaza/bannerslider';
     const TEMPLATE_MEDIA_TYPE_BANNER = 'banner/image';
     const TEMPLATE_MEDIA_TYPE_SLIDER = 'slider/image';
 
+    /**
+     * @var WriteInterface
+     */
+    protected $mediaDirectory;
+
+    /**
+     * @var UploaderFactory
+     */
+    protected $uploaderFactory;
+
+    /**
+     * @var AdapterFactory
+     */
+    protected $imageFactory;
+
+    /**
+     * Media constructor.
+     *
+     * @param Context $context
+     * @param ObjectManagerInterface $objectManager
+     * @param StoreManagerInterface $storeManager
+     * @param Filesystem $filesystem
+     * @param UploaderFactory $uploaderFactory
+     * @param AdapterFactory $imageFactory
+     *
+     * @throws FileSystemException
+     */
+    public function __construct(
+        Context $context,
+        ObjectManagerInterface $objectManager,
+        StoreManagerInterface $storeManager,
+        Filesystem $filesystem,
+        UploaderFactory $uploaderFactory,
+        AdapterFactory $imageFactory
+    ) {
+        $this->mediaDirectory = $filesystem->getDirectoryWrite(DirectoryList::MEDIA);
+        $this->uploaderFactory = $uploaderFactory;
+        $this->imageFactory = $imageFactory;
+
+        parent::__construct($context, $objectManager, $storeManager);
+    }
+
+    /**
+     * @param $data
+     * @param string $fileName
+     * @param string $type
+     * @param null $oldImage
+     *
+     * @return $this
+     */
     public function uploadImage(&$data, $fileName = 'image', $type = '', $oldImage = null)
     {
         if (isset($data[$fileName]['delete']) && $data[$fileName]['delete']) {
@@ -66,6 +127,166 @@ class Image extends Media
             } catch (Exception $e) {
                 $data[$fileName] = isset($data[$fileName]['value']) ? $data[$fileName]['value'] : '';
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param $file
+     * @param $type
+     *
+     * @return $this
+     * @throws FileSystemException
+     */
+    public function removeImage($file, $type)
+    {
+        $image = $this->getMediaPath($file, $type);
+        if ($this->mediaDirectory->isFile($image)) {
+            $this->mediaDirectory->delete($image);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param $file
+     * @param string $type
+     *
+     * @return string
+     */
+    public function getMediaPath($file, $type = '')
+    {
+        return $this->getBaseMediaPath($type) . '/' . $this->_prepareFile($file);
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return string
+     */
+    public function getBaseMediaPath($type = '')
+    {
+        return trim(static::TEMPLATE_MEDIA_PATH . '/' . $type, '/');
+    }
+
+    /**
+     * @param string $file
+     *
+     * @return string
+     */
+    protected function _prepareFile($file)
+    {
+        return ltrim(str_replace('\\', '/', $file), '/');
+    }
+
+    /**
+     * @param $file
+     * @param $size
+     * @param string $type
+     * @param bool $keepRatio
+     *
+     * @return string
+     * @throws NoSuchEntityException
+     */
+    public function resizeImage($file, $size, $type = '', $keepRatio = true)
+    {
+        $image = $this->getMediaPath($file, $type);
+        if (!($imageSize = $this->correctImageSize($size))) {
+            return $this->getMediaUrl($image);
+        }
+        list($width, $height) = $imageSize;
+
+        $resizeImage = $this->getMediaPath($file, ($type ? $type . '/' : '') . 'resize/' . $width . 'x' . $height);
+
+        /** @var WriteInterface $mediaDirectory */
+        $mediaDirectory = $this->getMediaDirectory();
+        if ($mediaDirectory->isFile($resizeImage)) {
+            $image = $resizeImage;
+        } elseif (!$mediaDirectory->isExist($mediaDirectory->getAbsolutePath($image))) {
+            $imageResize = $this->imageFactory->create();
+            $imageResize->open($mediaDirectory->getAbsolutePath($image));
+            $imageResize->constrainOnly(true);
+            $imageResize->keepTransparency(true);
+            $imageResize->keepFrame(false);
+            $imageResize->keepAspectRatio($keepRatio);
+            $imageResize->resize($width, $height);
+
+            try {
+                $imageResize->save($mediaDirectory->getAbsolutePath($resizeImage));
+
+                $image = $resizeImage;
+            } catch (Exception $e) {
+                $this->_logger->critical($e->getMessage());
+            }
+        }
+
+        return $this->getMediaUrl($image);
+    }
+
+    /**
+     * @param $size
+     *
+     * @return array|bool
+     */
+    protected function correctImageSize($size)
+    {
+        if (!$size) {
+            return false;
+        }
+
+        if (strpos($size, 'x') === false) {
+            $width = $height = (int) $size;
+        } else {
+            list($width, $height) = explode('x', $size);
+        }
+
+        if (!$width && !$height) {
+            return false;
+        }
+
+        return [(int) $width ?: null, (int) $height ?: null];
+    }
+
+    /**
+     * @param $file
+     *
+     * @return string
+     * @throws NoSuchEntityException
+     */
+    public function getMediaUrl($file)
+    {
+        return $this->getBaseMediaUrl() . '/' . $this->_prepareFile($file);
+    }
+
+    /**
+     * @return string
+     * @throws NoSuchEntityException
+     */
+    public function getBaseMediaUrl()
+    {
+        return rtrim($this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA), '/');
+    }
+
+    /**
+     * @return WriteInterface
+     */
+    public function getMediaDirectory()
+    {
+        return $this->mediaDirectory;
+    }
+
+    /**
+     * @param $path
+     *
+     * @return $this
+     * @throws FileSystemException
+     */
+    public function removePath($path)
+    {
+        $pathMedia = $this->mediaDirectory->getRelativePath($path);
+        if ($this->mediaDirectory->isDirectory($pathMedia)) {
+            $this->mediaDirectory->delete($path);
         }
 
         return $this;
