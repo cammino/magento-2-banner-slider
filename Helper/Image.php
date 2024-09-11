@@ -33,6 +33,7 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\UrlInterface;
 use Magento\MediaStorage\Model\File\UploaderFactory;
 use Magento\Store\Model\StoreManagerInterface;
+use Mageplaza\Core\Helper\AbstractData;
 
 /**
  * Class Media
