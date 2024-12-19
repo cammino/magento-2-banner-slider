@@ -113,33 +113,29 @@ class Save extends Banner
                 $toDate = $data['to_date'];
             }
             if ($fromDate && $toDate) {
-                $fromDate = new DateTime($fromDate);
-                $toDate = new DateTime($toDate);
+                $fromDateObj = DateTime::createFromFormat('d/m/Y', $fromDate);
+                $toDateObj = DateTime::createFromFormat('d/m/Y', $toDate);
 
-                if ($fromDate > $toDate) {
+                if (!$fromDateObj || !$toDateObj) {
+                    $this->messageManager->addErrorMessage(__('Data inválida.'));
+                    $this->_session->setPageData($data);
+                    $this->dataPersistor->set('mpbannerslider_banner', $data);
+                    $this->_redirect('*/*/edit', ['banner_id' => $banner->getId()]);
+                    return;
+                }
 
-                    // make sure the date is converted to internal format
-                    $fromFilter = new \Zend_Filter_Input(
-                        ['quota_expiry' => $objDate],
-                        [],
-                        $data['from_date']
-                    );
-                    $toFilter = new \Zend_Filter_Input(
-                        ['quota_expiry' => $objDate],
-                        [],
-                        $data['from_date']
-                    );
-                    $data['from_date'] = $fromFilter->getUnescaped();
-                    $data['to_date'] = $toFilter->getUnescaped();
-
+                if ($fromDateObj > $toDateObj) {
                     $this->messageManager->addErrorMessage(__('End Date must follow Start Date.'));
                     $this->_session->setPageData($data);
                     $this->dataPersistor->set('mpbannerslider_banner', $data);
-                    $this->_redirect('*/*/edit', ['banner_id' => $slider->getId()]);
-
+                    $this->_redirect('*/*/edit', ['banner_id' => $banner->getId()]);
                     return;
                 }
+
+                $data['from_date'] = $fromDateObj->format('Y-m-d');
+                $data['to_date'] = $toDateObj->format('Y-m-d');
             }
+
 
             $banner->addData($data);
 
