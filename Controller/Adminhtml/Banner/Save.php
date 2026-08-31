@@ -96,8 +96,10 @@ class Save extends Banner
             $banner = $this->initBanner();
             if ($data['type'] === Type::IMAGE) {
                 $this->imageHelper->uploadImage($data, 'image', Image::TEMPLATE_MEDIA_TYPE_BANNER, $banner->getImage());
+                $this->imageHelper->uploadImage($data, 'image_mobile', Image::TEMPLATE_MEDIA_TYPE_BANNER, $banner->getImageMobile());
             } else {
                 $data['image'] = isset($data['image']['value']) ? $data['image']['value'] : '';
+                $data['image_mobile'] = isset($data['image_mobile']['value']) ? $data['image_mobile']['value'] : '';
             }
             $data['sliders_ids'] = (isset($data['sliders_ids']) && $data['sliders_ids'])
                 ? explode(',', $data['sliders_ids']) : [];

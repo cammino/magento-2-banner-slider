@@ -223,8 +223,18 @@ class Banner extends Generic implements TabInterface
 
         $uploadBanner = $fieldset->addField('image', BannerImage::class, [
             'name' => 'image',
-            'label' => __('Upload Image'),
-            'title' => __('Upload Image'),
+            'label' => __('Upload Image (Desktop)'),
+            'title' => __('Upload Image (Desktop)'),
+            'path' => $this->imageHelper->getBaseMediaPath(HelperImage::TEMPLATE_MEDIA_TYPE_BANNER)
+        ]);
+
+        $uploadBannerMobile = $fieldset->addField('image_mobile', BannerImage::class, [
+            'name' => 'image_mobile',
+            'label' => __('Upload Image (Mobile)'),
+            'title' => __('Upload Image (Mobile)'),
+            'note' => __('Optional. When set, the banner is rendered as a single <picture> tag ' .
+                'that swaps to this image on mobile viewports, instead of downloading both ' .
+                'the desktop and mobile images on every device.'),
             'path' => $this->imageHelper->getBaseMediaPath(HelperImage::TEMPLATE_MEDIA_TYPE_BANNER)
         ]);
 
@@ -263,6 +273,22 @@ class Banner extends Generic implements TabInterface
             'label' => __('Height'),
             'title' => __('Height'),
             'note' => __('Defines height of banner')
+
+        ]);
+
+        $widthMobile = $fieldset->addField('width_mobile', 'text', [
+            'name' => 'width_mobile',
+            'label' => __('Width (Mobile)'),
+            'title' => __('Width (Mobile)'),
+            'note' => __('Defines width of the mobile banner image, if set')
+
+        ]);
+
+        $heightMobile = $fieldset->addField('height_mobile', 'text', [
+            'name' => 'height_mobile',
+            'label' => __('Height (Mobile)'),
+            'title' => __('Height (Mobile)'),
+            'note' => __('Defines height of the mobile banner image, if set')
 
         ]);
 
@@ -348,11 +374,13 @@ class Banner extends Generic implements TabInterface
             ->addFieldMap($typeBanner->getHtmlId(), $typeBanner->getName())
             ->addFieldMap($urlBanner->getHtmlId(), $urlBanner->getName())
             ->addFieldMap($uploadBanner->getHtmlId(), $uploadBanner->getName())
+            ->addFieldMap($uploadBannerMobile->getHtmlId(), $uploadBannerMobile->getName())
             ->addFieldMap($titleBanner->getHtmlId(), $titleBanner->getName())
             ->addFieldMap($newTab->getHtmlId(), $newTab->getName())
             ->addFieldMap($content->getHtmlId(), $content->getName())
             ->addFieldDependence($urlBanner->getName(), $typeBanner->getName(), '0')
             ->addFieldDependence($uploadBanner->getName(), $typeBanner->getName(), '0')
+            ->addFieldDependence($uploadBannerMobile->getName(), $typeBanner->getName(), '0')
             ->addFieldDependence($titleBanner->getName(), $typeBanner->getName(), '0')
             ->addFieldDependence($newTab->getName(), $typeBanner->getName(), '0')
             ->addFieldDependence($content->getName(), $typeBanner->getName(), '1');

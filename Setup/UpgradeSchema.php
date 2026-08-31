@@ -92,6 +92,44 @@ class UpgradeSchema implements UpgradeSchemaInterface
             );
         }
 
+        if (version_compare($context->getVersion(), '2.4.0') < 0) {
+            // Biovittare: campos pra imagem mobile, permitindo montar uma única tag
+            // <picture> com art direction (desktop/mobile) no mesmo banner, em vez de
+            // dois banners separados controlados só por CSS (ambos baixados pelo
+            // navegador independente do dispositivo).
+            $setup->getConnection()->addColumn(
+                $installer->getTable('mageplaza_bannerslider_banner'),
+                'image_mobile',
+                [
+                    'type' => Table::TYPE_TEXT,
+                    'length' => 255,
+                    'nullable' => true,
+                    'comment' => 'Banner Image Mobile',
+                    'after' => 'image'
+                ]
+            );
+            $setup->getConnection()->addColumn(
+                $installer->getTable('mageplaza_bannerslider_banner'),
+                'width_mobile',
+                [
+                    'type' => Table::TYPE_TEXT,
+                    'nullable' => true,
+                    'comment' => 'Width Mobile',
+                    'after' => 'height'
+                ]
+            );
+            $setup->getConnection()->addColumn(
+                $installer->getTable('mageplaza_bannerslider_banner'),
+                'height_mobile',
+                [
+                    'type' => Table::TYPE_TEXT,
+                    'nullable' => true,
+                    'comment' => 'Height Mobile',
+                    'after' => 'width_mobile'
+                ]
+            );
+        }
+
         $installer->endSetup();
     }
 }

@@ -55,6 +55,12 @@ use Mageplaza\BannerSlider\Model\ResourceModel\Slider\CollectionFactory as slide
  * @method bool getIsChangedSliderList()
  * @method Banner setAffectedSliderIds(array $ids)
  * @method bool getAffectedSliderIds()
+ * @method Banner setImageMobile(string $imageMobile)
+ * @method string getImageMobile()
+ * @method Banner setWidthMobile(string $widthMobile)
+ * @method string getWidthMobile()
+ * @method Banner setHeightMobile(string $heightMobile)
+ * @method string getHeightMobile()
  */
 class Banner extends AbstractModel implements IdentityInterface
 {
@@ -182,6 +188,20 @@ class Banner extends AbstractModel implements IdentityInterface
     public function getImageUrl()
     {
         return $this->imageModel->getBaseUrl() . $this->getImage();
+    }
+
+    /**
+     * get full mobile image url, if a mobile image was set for this banner
+     *
+     * @return string
+     */
+    public function getImageMobileUrl()
+    {
+        if (!$this->getImageMobile()) {
+            return '';
+        }
+
+        return $this->imageModel->getBaseUrl() . $this->getImageMobile();
     }
 
     /**
